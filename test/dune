@@ -1,0 +1,5 @@
+(test
+ (name test)
+ (libraries cos510_a3 ounit2))
+
+;
