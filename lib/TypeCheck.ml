@@ -6,8 +6,8 @@ exception Impossible
 
 let rec equalTypes (t1:eType) (t2: eType) : bool =
   match t1, t2 with
-  | EIntTy, EIntTy -> true
-  | EFunTy (t11, t12), EFunTy (t21, t22) -> equalTypes t11 t21 && equalTypes t12 t22
+  | EIntType, EIntType -> true
+  | EFunType (t11, t12), EFunType (t21, t22) -> equalTypes t11 t21 && equalTypes t12 t22
   | _, _ -> false
 
 let rec isWF (env: eEnv) (e: exp) : unit = 
@@ -38,8 +38,8 @@ and typeOf (env: eEnv) (e: exp) =
       | Some (Type t) -> Some t
       | Some Val -> None
   end
-  | EInt _ -> Some EIntTy
-  | EOp (_, e1) -> isWF env e1; Some EIntTy
+  | EInt _ -> Some EIntType
+  | EOp (_, e1) -> isWF env e1; Some EIntType
   | EIf(e1, e2, e3) -> begin 
     isWF env e1; 
     match typeOf env e2, typeOf env e3 with
@@ -48,12 +48,12 @@ and typeOf (env: eEnv) (e: exp) =
     end
   | EApp (e1, e2) -> begin 
     match typeOf env e1 with
-    | Some EFunTy (_, t2) -> isWF env e2; Some t2
+    | Some EFunType (_, t2) -> isWF env e2; Some t2
     | _ -> None
   end
   | ETFun (x, t, e1) -> begin
     match typeOf (Context.add x (Type t) env) e1 with
-    | Some t2 -> Some (EFunTy (t,t2))
+    | Some t2 -> Some (EFunType (t,t2))
     | _ -> None
   end
   | ECheck (e1, t) -> begin

@@ -46,11 +46,11 @@ expr:
 
 ty:
     | aty            { $1 }
-    | aty ARROW ty   {EFunTy ($1, $3)}
+    | aty ARROW ty   {EFunType ($1, $3)}
     
 
 aty:
-    | INT           {EIntTy}
+    | INT           {EIntType}
     | LPAREN ty RPAREN { $2 }
 
 prog:

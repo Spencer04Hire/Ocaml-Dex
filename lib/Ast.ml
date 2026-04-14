@@ -1,8 +1,8 @@
 type var = Var.t
 
 type eType =
-  | EIntTy
-  | EFunTy of eType * eType
+  | EIntType
+  | EFunType of eType * eType
 
 type op =
   | Inc
@@ -33,8 +33,8 @@ type eEnv = judgement Context.t
 let rec eToString (e: exp) =
   let rec typeString (t: eType) = 
     match t with
-    | EIntTy -> "int"
-    | EFunTy (t1, t2) -> "(" ^ typeString t1 ^ ") -> (" ^ typeString t2 ^ ")"
+    | EIntType -> "int"
+    | EFunType (t1, t2) -> "(" ^ typeString t1 ^ ") -> (" ^ typeString t2 ^ ")"
   in
   match e.eExp with
   | EVar x -> Var.to_string x

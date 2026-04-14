@@ -17,11 +17,11 @@ let op_int_test =
 
 let etfun_test = 
   let v = Var.fresh "v" in
-  expOf (EApp(expOf (ETFun(v, EIntTy, expOf (EVar v))), 
+  expOf (EApp(expOf (ETFun(v, EIntType, expOf (EVar v))),
   expOf (EInt 1)))
 
 let check_int_test = 
-  expOf (ECheck (expOf (EInt 1), EIntTy))
+  expOf (ECheck (expOf (EInt 1), EIntType))
 
 
 let if_int_equal_test =

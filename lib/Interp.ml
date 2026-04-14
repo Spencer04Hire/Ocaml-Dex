@@ -48,11 +48,11 @@ let rec eInterp (e: exp) =
   | ECheck (e1, t) -> begin
     let v1 = eInterp e1 in
     match v1.eExp with
-    | EInt n -> if t = EIntTy then expOf (EInt n) else 
+    | EInt n -> if t = EIntType then expOf (EInt n) else
       raise (Fail ("function check applied to non function at" ^ Span.show_span e1.espan))
     | _ -> begin 
       match t with
-      | EFunTy (t1, t2) -> 
+      | EFunType (t1, t2) ->
         let x = Var.fresh "x" in
         let body = expOf (ECheck (expOf (EApp(v1, expOf(EVar x))), t2)) in
         eInterp (expOf(ETFun (x, t1, body)))
