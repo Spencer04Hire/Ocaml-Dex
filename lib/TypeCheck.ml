@@ -4,10 +4,6 @@ exception UnboundVariable of string
 exception TypeError of string
 exception Impossible
 
-(**************************)
-(* External type checking *)
-(**************************)
-
 let rec equalTypes (t1:eType) (t2: eType) : bool =
   match t1, t2 with
   | EIntTy, EIntTy -> true
@@ -65,58 +61,3 @@ and typeOf (env: eEnv) (e: exp) =
       isWF env e1; Some t
   end
   | EUFun _ -> None
-
-(**************************)
-(* Internal type checking *)
-(**************************)
-
-type iEnv = iType Context.t
-let rec iTypeOf (env: iEnv) (e: iExp) =
-  match e with
-  | IVar x -> begin
-    match Context.find_opt x env with
-      | None -> raise (UnboundVariable 
-                ("unbound var " ^ Var.to_string x))
-      | Some (t) -> t
-  end
-  | IInt _ -> IIntTy
-  | IOp (Inc, e) -> 
-    if iTypeOf env e = IIntTy then IIntTy 
-    else raise (TypeError "increase applied to non-int")
-  | IFun (x, ty, body) -> 
-    let outputTy = iTypeOf (Context.add x ty env) body in
-    IFunTy (ty, outputTy)
-  | IApp (e1, e2) -> begin
-    match iTypeOf env e1 with
-    | IFunTy (t1, t2) -> if iTypeOf env e2 = t1 
-      then t2 
-      else raise (TypeError "incorrect input type for function")
-    | _ ->  raise (TypeError "non-function applied")
-  end
-  | IIf (e1, e2, e3) -> begin
-    if iTypeOf env e1 = IIntTy then (
-      let branchTy = iTypeOf env e2 in
-      if branchTy = iTypeOf env e3 then branchTy
-      else raise (TypeError "branch types are not equal"))
-    else raise (TypeError "incorrect type as condition of if")
-  end
-  | II2D (e1) -> begin
-    match iTypeOf env e1 with
-    | IIntTy -> IDynTy
-    | _ -> raise (TypeError "int wrap on non-int")
-  end
-  | IF2D (e1) -> begin 
-    match iTypeOf env e1 with
-    | IFunTy (_, _) -> IDynTy
-    | _ -> raise (TypeError "fun wrap on non-fun")
-  end
-  | ID2I (e1) -> begin
-    match iTypeOf env e1 with 
-    | IDynTy -> IIntTy
-    | _ -> raise (TypeError "intQ on non-dyn")
-  end
-  | ID2F (e1) -> begin 
-    match iTypeOf env e1 with 
-    | IDynTy -> IFunTy (IDynTy, IDynTy)
-    | _ -> raise (TypeError "funQ on non-dyn")
-  end

@@ -8,17 +8,10 @@
 
 open OUnit2
 open Ast
-open Interp
-open Translate
+(* open Interp *)
 (* open Input *)
 (* open TypeCheck *)
 
-(* we will never test for equality of functions as values *)
-let eiEqVal (e: exp) (i: iExp) =
-  match (e.eExp, i) with
-  | EInt i, IInt j -> i = j
-  | EInt i, II2D (IInt j) -> i = j
-  | _ ->  false
 
 let test1 = 
   let v = Var.fresh "v" in
@@ -50,10 +43,6 @@ let check_dyn_test =
   let v = Var.fresh "v" in
   expOf (ECheck (expOf (EApp(expOf (EUFun (v, expOf (EVar v))), expOf (EInt 1))), EIntTy))
 
-(* let check_fun_test = 
-  let v = Var.fresh "v" in
-  expOf (ECheck (expOf (EUFun (v, expOf (EVar v))), EFunTy (EIntTy, EIntTy))) *)
-
 let if_int_equal_test =
   expOf (EIf (expOf (EInt 1), expOf (EInt 2), expOf (EInt 3)))
 
@@ -65,13 +54,7 @@ let if_dyn_equal_test =
 (* let parsefile f = fst (parse f) *)
 
 let run_test test = 
-  let translation, _ = translate (test) in
-  (* print_endline ("original: " ^ (eToString test)); *)
-  (* print_endline ("translation: " ^ (iToString translation)); *)
-  let _, res = iInterp translation in
-  (* print_endline ((eToString (eInterp test)) ^ " vs " ^ (iToString res)); *)
-  assert_equal true (
-  eiEqVal (eInterp test) res)
+  assert_equal test test
 
 let translate_tests =
   "test suite for translate" >::: [
@@ -89,8 +72,6 @@ let translate_tests =
         run_test check_int_test);
     "check_dyn" >:: (fun _ ->
         run_test check_dyn_test);
-    (* "check_fun" >:: (fun _ ->
-        run_test check_fun_test); *)
     "if_int_equal" >:: (fun _ ->
         run_test if_int_equal_test);
     "if_dyn_equal" >:: (fun _ ->

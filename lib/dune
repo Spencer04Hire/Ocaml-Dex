@@ -1,7 +1,7 @@
 (library
  (name ocaml_dex)
  (libraries batteries ANSITerminal)
- (modules Ast Lexer Parser Span Var Console Input TypeCheck Interp Translate)
+ (modules Ast Lexer Parser Span Var Console Input TypeCheck Interp)
  (wrapped false)
  (preprocess (pps bisect_ppx)))
 
