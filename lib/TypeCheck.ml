@@ -25,7 +25,6 @@ let rec isWF (env: eEnv) (e: exp) : unit =
     end
     | EIf (e1, e2, e3) -> isWF env e1; isWF env e2; isWF env e3
     | EApp (e1, e2) ->isWF env e1; isWF env e2
-    | EUFun (x, e) -> isWF (Context.add x Val env) e
     | _ -> 
       raise (TypeError 
         ("expression on line" ^ Span.show_span e.espan ^ "is not wellformed"))
@@ -60,4 +59,3 @@ and typeOf (env: eEnv) (e: exp) =
   | ECheck (e1, t) -> begin
       isWF env e1; Some t
   end
-  | EUFun _ -> None

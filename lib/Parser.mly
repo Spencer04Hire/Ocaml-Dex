@@ -35,8 +35,6 @@ expr:
     | NUM           { aexp (EInt (snd $1)) (fst $1) }
     | INC LPAREN expr RPAREN      
             { aexp (EOp (Inc, $3)) (Span.extend $1 $4)}
-    | FUN ID IS expr END
-            { aexp (EUFun (snd $2, $4)) (Span.extend $1 $5)}
     | FUN ID COL ty IS expr END
             { aexp (ETFun (snd $2, $4, $6)) (Span.extend $1 $7)}
     | APPLY LPAREN expr COMM expr RPAREN

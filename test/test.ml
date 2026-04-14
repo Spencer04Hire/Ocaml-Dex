@@ -12,24 +12,8 @@ open Ast
 (* open Input *)
 (* open TypeCheck *)
 
-
-let test1 = 
-  let v = Var.fresh "v" in
-  expOf (EApp(expOf (EUFun(v, expOf (EVar v))), 
-  expOf (EInt 1)))
-
-let op_test = 
-  let v = Var.fresh "v" in
-  expOf (EApp(expOf (EUFun(v, expOf (EOp (Inc, expOf (EVar v))))), 
-  expOf (EInt 1)))
-
 let op_int_test =
   expOf (EOp (Inc, expOf (EInt 1)))
-
-let typed_var_fun_test = 
-  let v = Var.fresh "v" in
-  expOf (EApp(expOf (ETFun(v, EFunTy (EIntTy, EIntTy), expOf (EApp (expOf (EVar v), expOf (EInt 1))))), 
-  expOf (EUFun(v, expOf (EVar v)))))
 
 let etfun_test = 
   let v = Var.fresh "v" in
@@ -39,16 +23,10 @@ let etfun_test =
 let check_int_test = 
   expOf (ECheck (expOf (EInt 1), EIntTy))
 
-let check_dyn_test = 
-  let v = Var.fresh "v" in
-  expOf (ECheck (expOf (EApp(expOf (EUFun (v, expOf (EVar v))), expOf (EInt 1))), EIntTy))
 
 let if_int_equal_test =
   expOf (EIf (expOf (EInt 1), expOf (EInt 2), expOf (EInt 3)))
 
-let if_dyn_equal_test = 
-  let v = Var.fresh "v" in
-  expOf (EIf (expOf (EApp(expOf (EUFun (v, expOf (EVar v))), expOf (EInt 1))), expOf (EInt 2), expOf (EInt 3)))
 
 (* use parsefile to read in files in the external syntax *)
 (* let parsefile f = fst (parse f) *)
@@ -58,24 +36,14 @@ let run_test test =
 
 let translate_tests =
   "test suite for translate" >::: [
-    "untyped_identity" >:: (fun _ -> 
-        run_test test1);
-    "increment_one_function" >:: (fun _ ->
-        run_test op_test);
     "increment_one_int" >:: (fun _ ->
         run_test op_int_test);
     "typed_identity" >:: (fun _ ->
         run_test etfun_test);
-    "typed_identity_fun" >:: (fun _ ->
-        run_test typed_var_fun_test);
     "check_int" >:: (fun _ ->
         run_test check_int_test);
-    "check_dyn" >:: (fun _ ->
-        run_test check_dyn_test);
     "if_int_equal" >:: (fun _ ->
         run_test if_int_equal_test);
-    "if_dyn_equal" >:: (fun _ ->
-        run_test if_dyn_equal_test);
   ] 
 
 let _ = print_endline "running tests"
