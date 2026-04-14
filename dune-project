@@ -1,9 +1,9 @@
 (lang dune 3.19)
 
-(name cos510-a3)
+(name ocaml-dex)
 
 (generate_opam_files true)
 
 (using menhir 3.0)
 
-(authors "Theresa Lim")
+(authors "Jenny Fan" "Spencer Doyle")
