@@ -8,32 +8,26 @@
 
 open OUnit2
 open Ast
-(* open Interp *)
-(* open Input *)
+open Interp
+open Input
 (* open TypeCheck *)
 
-
-let etfun_test = 
-  let v = Var.fresh "v" in
-  expOf (EApp(expOf (ETFun(v, EIntType, expOf (EVar v))),
-  expOf (EInt 1)))
-
-let if_int_equal_test =
-  expOf (EIf (expOf (EInt 1), expOf (EInt 2), expOf (EInt 3)))
-
-
 (* use parsefile to read in files in the external syntax *)
-(* let parsefile f = fst (parse f) *)
+let parsefile f = fst (parse f)
 
-let run_test test = 
-  assert_equal test test
+let run_test file result =
+  (* let _ = print_endline ("running test on " ^ file) in
+  let _ = print_endline ("program: " ^ eToString (parsefile file)) in
+  let _ = print_endline ("expected result: " ^ eToString result) in
+  let _ = print_endline ("actual result: " ^ eToString (eInterp (parsefile file))) in *)
+  assert_equal (eInterp (parsefile file)).eExp result
 
 let translate_tests =
-  "test suite for translate" >::: [
-    "typed_identity" >:: (fun _ ->
-        run_test etfun_test);
-    "if_int_equal" >:: (fun _ ->
-        run_test if_int_equal_test);
+  "test suite" >::: [
+    "let_simple" >:: (fun _ ->
+        run_test "test/let_simple.odx" (EInt 5));
+    "let_arithmetic" >:: (fun _ ->
+        run_test "test/let_arithmetic.odx" (EInt 9))
   ] 
 
 let _ = print_endline "running tests"
