@@ -27,7 +27,9 @@ let translate_tests =
     "let_simple" >:: (fun _ ->
         run_test "test/let_simple.odx" (EInt 5));
     "let_arithmetic" >:: (fun _ ->
-        run_test "test/let_arithmetic.odx" (EInt 9))
+        run_test "test/let_arithmetic.odx" (EInt 9));
+    "let_negative" >:: (fun _ ->
+        run_test "test/let_negative.odx" (EInt (-2)));
   ] 
 
 let _ = print_endline "running tests"

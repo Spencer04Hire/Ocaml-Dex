@@ -39,9 +39,13 @@ expr:
 
 
 addExpr:
+    | negExpr               { $1 }
+    | addExpr PLUS negExpr  { aexp (EPlus ($1, $3)) (Span.extend $1.espan $3.espan) }
+    | addExpr MINUS negExpr { aexp (EMinus ($1, $3)) (Span.extend $1.espan $3.espan) }
+
+negExpr:
     | appExpr               { $1 }
-    | addExpr PLUS appExpr  { aexp (EPlus ($1, $3)) (Span.extend $1.espan $3.espan) }
-    | addExpr MINUS appExpr { aexp (EMinus ($1, $3)) (Span.extend $1.espan $3.espan) }
+    | MINUS negExpr         { aexp (EMinus (aexp (EInt 0) $1, $2)) (Span.extend $1 $2.espan) }
 
 appExpr:
     | atomExpr              { $1 }
