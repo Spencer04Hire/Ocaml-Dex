@@ -31,7 +31,6 @@ rule token = parse
   | "fi"              { FI (position lexbuf)}
   | "then"            { THEN (position lexbuf)}
   | "else"            { ELSE (position lexbuf)}
-  | "check"           { CHECK (position lexbuf)}
   | "int"             { INT (position lexbuf)}
   | "inc"             { INC (position lexbuf)}
   | "is"              { IS  (position lexbuf)}

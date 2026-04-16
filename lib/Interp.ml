@@ -12,8 +12,6 @@ let rec eSubst (x: var) (e1: exp) (e2: exp) =
     {eExp = ETFun(v, t, eSubst x e1 body); espan = e2.espan}
   | EApp (f, e) ->
      {eExp = EApp(eSubst x e1 f, eSubst x e1 e); espan = e2.espan}
-  | ECheck (e, t) ->
-    {eExp = ECheck(eSubst x e1 e, t); espan = e2.espan}
   | EIf (cond, th, el) -> 
     {eExp = EIf(eSubst x e1 cond, eSubst x e1 th, eSubst x e1 el)
     ; espan = e2.espan}
@@ -39,24 +37,9 @@ let rec eInterp (e: exp) =
   | EApp (e1, e2) -> begin
     let v2 = eInterp e2 in
     match (eInterp e1).eExp with
-    | ETFun (v, t, body) ->
-      let newApplicand = eInterp (expOf(ECheck(v2,t))) in
-      eInterp (eSubst v newApplicand body)
+    | ETFun (v, _, body) ->
+      eInterp (eSubst v v2 body)
     | _ -> raise (Fail
     ("application of non-function type at" ^ Span.show_span e.espan))
     end
-  | ECheck (e1, t) -> begin
-    let v1 = eInterp e1 in
-    match v1.eExp with
-    | EInt n -> if t = EIntType then expOf (EInt n) else
-      raise (Fail ("function check applied to non function at" ^ Span.show_span e1.espan))
-    | _ -> begin 
-      match t with
-      | EFunType (t1, t2) ->
-        let x = Var.fresh "x" in
-        let body = expOf (ECheck (expOf (EApp(v1, expOf(EVar x))), t2)) in
-        eInterp (expOf(ETFun (x, t1, body)))
-      | _ -> raise (Fail ("int check applied to non int at" ^ Span.show_span e1.espan))
-    end
-  end
   | ETFun _ -> e

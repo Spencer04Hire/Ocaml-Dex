@@ -56,6 +56,3 @@ and typeOf (env: eEnv) (e: exp) =
     | Some t2 -> Some (EFunType (t,t2))
     | _ -> None
   end
-  | ECheck (e1, t) -> begin
-      isWF env e1; Some t
-  end

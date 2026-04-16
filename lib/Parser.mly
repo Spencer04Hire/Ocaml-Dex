@@ -14,7 +14,6 @@
 %token <Span.t> FI
 %token <Span.t> THEN
 %token <Span.t> ELSE
-%token <Span.t> CHECK
 %token <Span.t> INT
 %token <Span.t> INC
 %token <Span.t> IS
@@ -41,8 +40,6 @@ expr:
             { aexp (EApp ($3, $5)) (Span.extend $1 $6)}
     | IF expr THEN expr ELSE expr FI
             { aexp (EIf ($2, $4, $6)) (Span.extend $1 $7)}
-    | CHECK LPAREN expr COMM ty RPAREN
-            { aexp (ECheck ($3, $5)) (Span.extend $1 $6)}
 
 ty:
     | aty            { $1 }

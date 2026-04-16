@@ -20,10 +20,6 @@ let etfun_test =
   expOf (EApp(expOf (ETFun(v, EIntType, expOf (EVar v))),
   expOf (EInt 1)))
 
-let check_int_test = 
-  expOf (ECheck (expOf (EInt 1), EIntType))
-
-
 let if_int_equal_test =
   expOf (EIf (expOf (EInt 1), expOf (EInt 2), expOf (EInt 3)))
 
@@ -40,8 +36,6 @@ let translate_tests =
         run_test op_int_test);
     "typed_identity" >:: (fun _ ->
         run_test etfun_test);
-    "check_int" >:: (fun _ ->
-        run_test check_int_test);
     "if_int_equal" >:: (fun _ ->
         run_test if_int_equal_test);
   ] 

@@ -15,7 +15,6 @@ type eExp = (* use span to parse *)
   (* lambdas (non-recursive functions) *)
   | ETFun of var * eType * exp
   | EApp of exp * exp
-  | ECheck of exp * eType
   | EIf of exp * exp * exp (* if 0, take first branch; else, take second*)
 and exp = 
   { eExp : eExp
@@ -44,8 +43,6 @@ let rec eToString (e: exp) =
     "fun " ^ Var.to_string x ^ ": " ^ typeString ty ^ " is " ^ eToString exp ^ " end"
   | EApp (e1, e2) ->
     "(" ^ eToString e1 ^ ") (" ^ eToString e2 ^ ")"
-  | ECheck (e1, t) ->
-    "check (" ^ eToString e1 ^ " as " ^ typeString t ^ ")"
   | EIf (e1, e2, e3) ->
-    "if " ^ eToString e1 ^ "= 0 then \n" ^ eToString e2 
+    "if " ^ eToString e1 ^ "= 0 then \n" ^ eToString e2
     ^ "\n else \n" ^ eToString e3 ^ "fi"
