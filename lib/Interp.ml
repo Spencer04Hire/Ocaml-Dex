@@ -7,7 +7,10 @@ let rec eSubst (x: var) (e1: exp) (e2: exp) =
   match e2.eExp with
   | EVar v -> if v = x then e1 else e2
   | EInt _ -> e2
-  | EOp (op, e) -> {eExp = EOp(op, eSubst x e1 e); espan = e2.espan}
+  | EPlus (e21, e22) -> 
+    {eExp = EPlus(eSubst x e1 e21, eSubst x e1 e22); espan = e2.espan}
+  | EMinus (e21, e22) ->
+    {eExp = EMinus(eSubst x e1 e21, eSubst x e1 e22); espan = e2.espan}
   | ETFun (v, t, body) -> if v = x then e2 else 
     {eExp = ETFun(v, t, eSubst x e1 body); espan = e2.espan}
   | EApp (f, e) ->
@@ -15,17 +18,24 @@ let rec eSubst (x: var) (e1: exp) (e2: exp) =
   | EIf (cond, th, el) -> 
     {eExp = EIf(eSubst x e1 cond, eSubst x e1 th, eSubst x e1 el)
     ; espan = e2.espan}
+  | ELet (v, e1', e2') -> if v = x then e2 else
+    {eExp = ELet(v, eSubst x e1 e1', eSubst x e1 e2'); espan = e2.espan}
 
 let rec eInterp (e: exp) =
   match e.eExp with
   | EVar v -> raise (UnboundVariable (Var.to_string v))
   | EInt _ -> e
-  | EOp (Inc, e) -> begin
-    let interped = eInterp e in
-    match interped.eExp with
-    | EInt i -> {eExp = EInt (i+1); espan = interped.espan}
-    | _ -> raise (Fail 
-      ("inc applied to a non-integer value at " ^ (Span.show_span e.espan)))
+  | EPlus (e1, e2) -> begin
+    match (eInterp e1).eExp, (eInterp e2).eExp with
+    | EInt i1, EInt i2 -> aexp (EInt (i1 + i2)) e.espan
+    | _ -> raise (Fail
+      ("addition of non-integer type at " ^ (Span.show_span e.espan)))
+  end
+  | EMinus (e1, e2) -> begin
+    match (eInterp e1).eExp, (eInterp e2).eExp with
+    | EInt i1, EInt i2 -> aexp (EInt (i1 - i2)) e.espan
+    | _ -> raise (Fail
+      ("subtraction of non-integer type at " ^ (Span.show_span e.espan)))
   end
   | EIf (e1, e2, e3) -> begin
     match (eInterp e1).eExp with
@@ -43,3 +53,4 @@ let rec eInterp (e: exp) =
     ("application of non-function type at" ^ Span.show_span e.espan))
     end
   | ETFun _ -> e
+  | ELet (v, e1, e2) -> eInterp (eSubst v (eInterp e1) e2)

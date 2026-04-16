@@ -1,4 +1,4 @@
-open Ast
+(* open Ast
 
 exception UnboundVariable of string
 exception TypeError of string
@@ -55,4 +55,4 @@ and typeOf (env: eEnv) (e: exp) =
     match typeOf (Context.add x (Type t) env) e1 with
     | Some t2 -> Some (EFunType (t,t2))
     | _ -> None
-  end
+  end *)

@@ -7,21 +7,20 @@
 
 %token <Span.t * Var.t> ID
 %token <Span.t * Int.t> NUM
+%token <Span.t> LET
+%token <Span.t> IN
+%token <Span.t> EQUAL
 %token <Span.t> FUN
-%token <Span.t> END
-%token <Span.t> APPLY
 %token <Span.t> IF
-%token <Span.t> FI
 %token <Span.t> THEN
 %token <Span.t> ELSE
 %token <Span.t> INT
-%token <Span.t> INC
-%token <Span.t> IS
 %token <Span.t> LPAREN
 %token <Span.t> RPAREN
-%token <Span.t> COMM
 %token <Span.t> COL
-%token <Span.t> ARROW 
+%token <Span.t> ARROW
+%token <Span.t> PLUS
+%token <Span.t> MINUS
 %token EOF
 
 %start prog
@@ -30,16 +29,28 @@
 %%
 
 expr:
-    | ID            { aexp (EVar (snd $1)) (fst $1) }
-    | NUM           { aexp (EInt (snd $1)) (fst $1) }
-    | INC LPAREN expr RPAREN      
-            { aexp (EOp (Inc, $3)) (Span.extend $1 $4)}
-    | FUN ID COL ty IS expr END
-            { aexp (ETFun (snd $2, $4, $6)) (Span.extend $1 $7)}
-    | APPLY LPAREN expr COMM expr RPAREN
-            { aexp (EApp ($3, $5)) (Span.extend $1 $6)}
-    | IF expr THEN expr ELSE expr FI
-            { aexp (EIf ($2, $4, $6)) (Span.extend $1 $7)}
+    | addExpr       { $1 }
+    | FUN ID COL ty EQUAL expr
+            { aexp (ETFun (snd $2, $4, $6)) (Span.extend $1 $6.espan)}
+    | IF expr THEN expr ELSE expr
+            { aexp (EIf ($2, $4, $6)) (Span.extend $1 $6.espan)}
+    | LET ID EQUAL expr IN expr
+            { aexp (ELet (snd $2, $4, $6)) (Span.extend $1 $6.espan) }
+
+
+addExpr:
+    | appExpr               { $1 }
+    | addExpr PLUS appExpr  { aexp (EPlus ($1, $3)) (Span.extend $1.espan $3.espan) }
+    | addExpr MINUS appExpr { aexp (EMinus ($1, $3)) (Span.extend $1.espan $3.espan) }
+
+appExpr:
+    | atomExpr              { $1 }
+    | appExpr atomExpr      { aexp (EApp ($1, $2)) (Span.extend $1.espan $2.espan) }
+
+atomExpr:
+    | ID                 { aexp (EVar (snd $1)) (fst $1) }
+    | NUM                { aexp (EInt (snd $1)) (fst $1) }
+    | LPAREN expr RPAREN { $2 }
 
 ty:
     | aty            { $1 }

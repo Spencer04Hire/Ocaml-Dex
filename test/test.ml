@@ -12,8 +12,6 @@ open Ast
 (* open Input *)
 (* open TypeCheck *)
 
-let op_int_test =
-  expOf (EOp (Inc, expOf (EInt 1)))
 
 let etfun_test = 
   let v = Var.fresh "v" in
@@ -32,8 +30,6 @@ let run_test test =
 
 let translate_tests =
   "test suite for translate" >::: [
-    "increment_one_int" >:: (fun _ ->
-        run_test op_int_test);
     "typed_identity" >:: (fun _ ->
         run_test etfun_test);
     "if_int_equal" >:: (fun _ ->
