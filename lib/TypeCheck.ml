@@ -2,12 +2,14 @@ open Ast
 
 exception UnboundVariable of string
 exception TypeError of string
+exception Impossible
 
 let rec typeOf (env: eEnv) (e: exp) : eType =
   match e.eExp with
   | EVar v -> begin
     match Context.find_opt v env with
     | Some (Type t) -> t
+    | Some (Fin _) -> ETypeType
     | None -> raise (UnboundVariable (Var.to_string v))
   end
   | EInt _ -> EIntType
@@ -46,7 +48,25 @@ let rec typeOf (env: eEnv) (e: exp) : eType =
     | _ -> raise (TypeError
       ("type error in if condition: expected an int at " ^ (Span.show_span e.espan)))
   end
-  | ELet (v, e1, e2) ->
+  | ELet (v, e1, e2) -> begin
     let t1 = typeOf env e1 in
-    let env' = Context.add v (Type t1) env in
+    let binding = match e1.eExp with
+    | EFin inner -> begin
+      match inner.eExp with
+      | EInt n -> Fin n
+      | _ -> raise Impossible
+    end
+    | _ -> Type t1
+    in
+    let env' = Context.add v binding env in
     typeOf env' e2
+  end
+  | EFin e1 -> begin
+    match e1.eExp with
+    | EInt n ->
+      if n > 0 then ETypeType
+      else raise (TypeError
+      ("type error in finite type: expected a positive integer but got " ^ (string_of_int n) ^ " at " ^ (Span.show_span e.espan)))
+    | _ -> raise (TypeError
+      ("type error in finite type: expected an integer literal at " ^ (Span.show_span e.espan)))
+  end

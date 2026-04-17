@@ -30,6 +30,7 @@ rule token = parse
   | "then"            { THEN (position lexbuf)}
   | "else"            { ELSE (position lexbuf)}
   | "int"             { INT (position lexbuf)}
+  | "Fin"             { FIN (position lexbuf)}
   | "("               { LPAREN (position lexbuf) } 
   | ")"               { RPAREN (position lexbuf) }
   | ":"               { COL (position lexbuf)}

@@ -29,14 +29,20 @@ let type_check_fail file =
     assert_failure ("expected type error in " ^ file)
   with TypeError _ -> ()
 
+let equal e1 e2 =
+  let s1 = eToString e1 in
+  let s2 = eToString e2 in
+  s1 = s2
+
 let run_test file result =
   (* let _ = print_endline ("running test on " ^ file) in
   let _ = print_endline ("program: " ^ eToString (parsefile file)) in
   let _ = print_endline ("expected result: " ^ eToString result) in
   let _ = print_endline ("actual result: " ^ eToString (eInterp (parsefile file))) in *)
+  let exp_result = expOf result in
   let e = parsefile file in
   let _ = typeOf Context.empty e in
-  assert_equal (eInterp e).eExp result
+  assert_bool "not equal" (equal (eInterp e) exp_result)
 
 let tests =
   "test suite" >::: [
@@ -57,7 +63,13 @@ let tests =
     "if_cond_type_fail" >:: (fun _ ->
         type_check_fail "test/if_cond_type_fail.odx");
     "if_branch_type_fail" >:: (fun _ ->
-        type_check_fail "test/if_branch_type_fail.odx")
+        type_check_fail "test/if_branch_type_fail.odx");
+    "let_fin" >:: (fun _ ->
+        run_test "test/let_fin.odx" (EFin (expOf (EInt 5))));
+    "fin_type_fail" >:: (fun _ ->
+        type_check_fail "test/fin_type_fail.odx");
+    "fin_neg_fail" >:: (fun _ ->
+        type_check_fail "test/fin_neg_fail.odx");
   ] 
 
 let _ = print_endline "running tests"

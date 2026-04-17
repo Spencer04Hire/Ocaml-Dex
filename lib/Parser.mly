@@ -3,8 +3,6 @@
   
 %}
 
-// this is a parser for the external "python-like" syntax
-
 %token <Span.t * Var.t> ID
 %token <Span.t * Int.t> NUM
 %token <Span.t> LET
@@ -15,6 +13,7 @@
 %token <Span.t> THEN
 %token <Span.t> ELSE
 %token <Span.t> INT
+%token <Span.t> FIN
 %token <Span.t> LPAREN
 %token <Span.t> RPAREN
 %token <Span.t> COL
@@ -54,6 +53,7 @@ appExpr:
 atomExpr:
     | ID                 { aexp (EVar (snd $1)) (fst $1) }
     | NUM                { aexp (EInt (snd $1)) (fst $1) }
+    | FIN atomExpr       { aexp (EFin $2) (Span.extend $1 $2.espan) }
     | LPAREN expr RPAREN { $2 }
 
 ty:

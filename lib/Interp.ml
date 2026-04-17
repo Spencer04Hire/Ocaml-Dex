@@ -20,6 +20,7 @@ let rec eSubst (x: var) (e1: exp) (e2: exp) =
     ; espan = e2.espan}
   | ELet (v, e1', e2') -> if v = x then e2 else
     {eExp = ELet(v, eSubst x e1 e1', eSubst x e1 e2'); espan = e2.espan}
+  | EFin e -> {eExp = EFin (e); espan = e2.espan} (* don't substitute since Fin only takes in int literals *)
 
 let rec eInterp (e: exp) =
   match e.eExp with
@@ -54,3 +55,4 @@ let rec eInterp (e: exp) =
     end
   | ETFun _ -> e
   | ELet (v, e1, e2) -> eInterp (eSubst v (eInterp e1) e2)
+  | EFin _ -> e
