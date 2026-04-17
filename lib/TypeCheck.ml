@@ -1,58 +1,52 @@
-(* open Ast
+open Ast
 
 exception UnboundVariable of string
 exception TypeError of string
-exception Impossible
 
-let rec equalTypes (t1:eType) (t2: eType) : bool =
-  match t1, t2 with
-  | EIntType, EIntType -> true
-  | EFunType (t11, t12), EFunType (t21, t22) -> equalTypes t11 t21 && equalTypes t12 t22
-  | _, _ -> false
-
-let rec isWF (env: eEnv) (e: exp) : unit = 
-  let (tau: eType option) = typeOf env e in
-  match tau with
-  | Some _ -> ()
-  | None -> begin
-    match e.eExp with
-    | EVar x -> begin
-      match Context.find_opt x env with
-      | None -> raise (UnboundVariable 
-                ("unbound var " ^ Var.to_string x ^ " on line" ^ Span.show_span e.espan))
-      | Some Val -> ()
-      | _ -> raise Impossible
-    end
-    | EIf (e1, e2, e3) -> isWF env e1; isWF env e2; isWF env e3
-    | EApp (e1, e2) ->isWF env e1; isWF env e2
-    | _ -> 
-      raise (TypeError 
-        ("expression on line" ^ Span.show_span e.espan ^ "is not wellformed"))
-  end
-and typeOf (env: eEnv) (e: exp) = 
+let rec typeOf (env: eEnv) (e: exp) : eType =
   match e.eExp with
-  | EVar x -> begin
-      match Context.find_opt x env with
-      | None -> raise (UnboundVariable 
-                ("unbound var" ^ Var.to_string x ^" on line" ^ Span.show_span e.espan))
-      | Some (Type t) -> Some t
-      | Some Val -> None
+  | EVar v -> begin
+    match Context.find_opt v env with
+    | Some (Type t) -> t
+    | None -> raise (UnboundVariable (Var.to_string v))
   end
-  | EInt _ -> Some EIntType
-  | EOp (_, e1) -> isWF env e1; Some EIntType
-  | EIf(e1, e2, e3) -> begin 
-    isWF env e1; 
-    match typeOf env e2, typeOf env e3 with
-    | None, _ | _, None -> None
-    | Some x, Some y -> if equalTypes x y then Some x else None
-    end
-  | EApp (e1, e2) -> begin 
-    match typeOf env e1 with
-    | Some EFunType (_, t2) -> isWF env e2; Some t2
-    | _ -> None
+  | EInt _ -> EIntType
+  | EPlus (e1, e2) | EMinus (e1, e2) -> begin
+    let t1 = typeOf env e1 in
+    let t2 = typeOf env e2 in
+    match t1, t2 with
+    | EIntType, EIntType -> EIntType
+    | _ -> raise (TypeError
+      ("type error in arithmetic operation at " ^ (Span.show_span e.espan)))
   end
-  | ETFun (x, t, e1) -> begin
-    match typeOf (Context.add x (Type t) env) e1 with
-    | Some t2 -> Some (EFunType (t,t2))
-    | _ -> None
-  end *)
+  | ETFun (v, t, body) -> 
+    let env' = Context.add v (Type t) env in
+    let tBody = typeOf env' body in
+    EFunType (t, tBody)
+  | EApp (e1, e2) -> begin
+    let t1 = typeOf env e1 in
+    let t2 = typeOf env e2 in
+    match t1 with
+    | EFunType (tArg, tRet) ->
+      if tArg = t2 then tRet
+      else raise (TypeError
+        ("type error in application: expected argument of type " ^ (Ast.typeString tArg) ^ " but got " ^ (Ast.typeString t2) ^ " at " ^ (Span.show_span e.espan)))
+    | _ -> raise (TypeError
+      ("type error in application: expected a function at " ^ (Span.show_span e.espan)))
+  end
+  | EIf (e1, e2, e3) -> begin
+    let t1 = typeOf env e1 in
+    let t2 = typeOf env e2 in
+    let t3 = typeOf env e3 in
+    match t1 with
+    | EIntType ->
+      if t2 = t3 then t2
+      else raise (TypeError
+        ("type error in if branches: expected both branches to have the same type but got " ^ (Ast.typeString t2) ^ " and " ^ (Ast.typeString t3) ^ " at " ^ (Span.show_span e.espan)))
+    | _ -> raise (TypeError
+      ("type error in if condition: expected an int at " ^ (Span.show_span e.espan)))
+  end
+  | ELet (v, e1, e2) ->
+    let t1 = typeOf env e1 in
+    let env' = Context.add v (Type t1) env in
+    typeOf env' e2

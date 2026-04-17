@@ -24,16 +24,15 @@ let aexp e span = { eExp = e ; espan = span}
 let expOf e = {eExp = e; espan = Span.default}
 
 module Context = Map.Make(Var)
-type context = eExp Context.t
-type judgement = Val | Type of eType
+type judgement = Type of eType
 type eEnv = judgement Context.t
 
+let rec typeString (t: eType) = 
+  match t with
+  | EIntType -> "int"
+  | EFunType (t1, t2) -> "(" ^ typeString t1 ^ ") -> (" ^ typeString t2 ^ ")"
+
 let rec eToString (e: exp) =
-  let rec typeString (t: eType) = 
-    match t with
-    | EIntType -> "int"
-    | EFunType (t1, t2) -> "(" ^ typeString t1 ^ ") -> (" ^ typeString t2 ^ ")"
-  in
   match e.eExp with
   | EVar x -> Var.to_string x
   | EInt i -> Int.to_string i
