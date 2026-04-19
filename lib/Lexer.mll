@@ -24,17 +24,20 @@ let wspace = [' ' '\t']
 rule token = parse
   | "let"             { LET (position lexbuf) }
   | "in"              { IN (position lexbuf) }
-  | "="               { EQUAL (position lexbuf) }
   | "fun"             { FUN (position lexbuf) }
   | "if"              { IF (position lexbuf)}
   | "then"            { THEN (position lexbuf)}
   | "else"            { ELSE (position lexbuf)}
   | "int"             { INT (position lexbuf)}
   | "Fin"             { FIN (position lexbuf)}
+  | "for"             { FOR (position lexbuf)}
+  | "."               { DOT (position lexbuf)}
   | "("               { LPAREN (position lexbuf) } 
   | ")"               { RPAREN (position lexbuf) }
   | ":"               { COL (position lexbuf)}
   | "->"              { ARROW (position lexbuf)}
+  | "=>"              { ARR_ARROW (position lexbuf)}
+  | "="               { EQUAL (position lexbuf) }
   | "+"               { PLUS (position lexbuf)}
   | "-"               { MINUS (position lexbuf)}
   | wspace            { token lexbuf }

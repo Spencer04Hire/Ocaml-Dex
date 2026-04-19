@@ -3,7 +3,9 @@ type var = Var.t
 type eType =
   | EIntType
   | EFunType of eType * eType
-  | ETypeType (* for variables that are a type *)
+  | EFinType of int
+  | ETypeType of eType (* for variables that are a type *)
+  | EArrType of eType * eType (* Fin n => Type *)
 
 
 type eExp = (* use span to parse *)
@@ -12,12 +14,18 @@ type eExp = (* use span to parse *)
   | EPlus of exp * exp
   | EMinus of exp * exp
   (* lambdas (non-recursive functions) *)
-  | ETFun of var * eType * exp
+  | ETFun of var * exp * exp
   | EApp of exp * exp
-  | EIf of exp * exp * exp (* if 0, take first branch; else, take second*)
-  | ELet of var * exp * exp (* let x = e1 in e2 *)
-  | EFin of exp
-and exp = 
+  | EIf of exp * exp * exp    (* if 0, take first branch; else, take second*)
+  | ELet of var * exp * exp   (* let x = e1 in e2 *)
+  | EFor of var * exp * exp   (* for x:Fin n. e *)
+  | EArr of exp list          (* [e1, e2, e3], not used by the programmer *)
+  (* type constructors *)
+  | EIntTypeExpr
+  | EFunTypeExpr of exp * exp
+  | EFinTypeExpr of exp           (* Fin 5 *)
+  | EArrTypeExpr of exp * exp
+and exp =
   { eExp : eExp
   ; espan : Span.t
 }
@@ -26,16 +34,15 @@ let aexp e span = { eExp = e ; espan = span}
 let expOf e = {eExp = e; espan = Span.default}
 
 module Context = Map.Make(Var)
-type judgement =
-  | Type of eType
-  | Fin of int
-type eEnv = judgement Context.t
+type eEnv = eType Context.t
 
-let rec typeString (t: eType) = 
+let rec typeString (t: eType) =
   match t with
   | EIntType -> "int"
-  | EFunType (t1, t2) -> "(" ^ typeString t1 ^ ") -> (" ^ typeString t2 ^ ")"
-  | ETypeType -> "Type"
+  | EFinType n -> "Fin(" ^ Int.to_string n ^ ")"
+  | EFunType (e1, e2) -> "(" ^ typeString e1 ^ ") -> (" ^ typeString e2 ^ ")"
+  | ETypeType t -> "Type(" ^ typeString t ^ ")"
+  | EArrType (e1, e2) -> "[" ^ typeString e1 ^ "] => " ^ typeString e2
 
 let rec eToString (e: exp) =
   match e.eExp with
@@ -44,7 +51,7 @@ let rec eToString (e: exp) =
   | EPlus (e1, e2) -> "(" ^ eToString e1 ^ " + " ^ eToString e2 ^ ")"
   | EMinus (e1, e2) -> "(" ^ eToString e1 ^ " - " ^ eToString e2 ^ ")"
   | ETFun (x, ty, exp) -> 
-    "fun " ^ Var.to_string x ^ ": " ^ typeString ty ^ " is " ^ eToString exp ^ " end"
+    "fun " ^ Var.to_string x ^ ": " ^ eToString ty ^ " is " ^ eToString exp ^ " end"
   | EApp (e1, e2) ->
     "(" ^ eToString e1 ^ ") (" ^ eToString e2 ^ ")"
   | EIf (e1, e2, e3) ->
@@ -52,4 +59,10 @@ let rec eToString (e: exp) =
     ^ "\n else \n" ^ eToString e3 ^ "fi"
   | ELet (x, e1, e2) ->
     "let " ^ Var.to_string x ^ " = " ^ eToString e1 ^ " in \n" ^ eToString e2
-  | EFin e -> "Fin(" ^ eToString e ^ ")"
+  | EFor (x, e1, e2) -> "for " ^ Var.to_string x ^ ": " ^ eToString e1 ^ ". " ^ eToString e2
+  | EArr es -> "[ " ^ String.concat "; " (List.map eToString es) ^ " ]"
+  (* type expressions *)
+  | EIntTypeExpr -> "int"
+  | EFinTypeExpr e -> "Fin(" ^ eToString e ^ ")"
+  | EFunTypeExpr (e1, e2) -> "(" ^ eToString e1 ^ ") -> (" ^ eToString e2 ^ ")"
+  | EArrTypeExpr (e1, e2) -> "[" ^ eToString e1 ^ "] => " ^ eToString e2

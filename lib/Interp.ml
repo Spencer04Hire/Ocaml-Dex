@@ -1,6 +1,7 @@
 open Ast
 exception UnboundVariable of string
 exception Fail of string
+exception Impossible
 
 (* substitutes x with e1 in e2 *)
 let rec eSubst (x: var) (e1: exp) (e2: exp) =
@@ -11,16 +12,34 @@ let rec eSubst (x: var) (e1: exp) (e2: exp) =
     {eExp = EPlus(eSubst x e1 e21, eSubst x e1 e22); espan = e2.espan}
   | EMinus (e21, e22) ->
     {eExp = EMinus(eSubst x e1 e21, eSubst x e1 e22); espan = e2.espan}
-  | ETFun (v, t, body) -> if v = x then e2 else 
-    {eExp = ETFun(v, t, eSubst x e1 body); espan = e2.espan}
+  | ETFun (v, t, body) ->
+    let t' = eSubst x e1 t in
+    if v = x then {eExp = ETFun(v, t', body); espan = e2.espan}
+    else {eExp = ETFun(v, t', eSubst x e1 body); espan = e2.espan}
   | EApp (f, e) ->
      {eExp = EApp(eSubst x e1 f, eSubst x e1 e); espan = e2.espan}
   | EIf (cond, th, el) -> 
     {eExp = EIf(eSubst x e1 cond, eSubst x e1 th, eSubst x e1 el)
     ; espan = e2.espan}
-  | ELet (v, e1', e2') -> if v = x then e2 else
-    {eExp = ELet(v, eSubst x e1 e1', eSubst x e1 e2'); espan = e2.espan}
-  | EFin e -> {eExp = EFin (e); espan = e2.espan} (* don't substitute since Fin only takes in int literals *)
+  | ELet (v, e1', e2') ->
+    let e1'' = eSubst x e1 e1' in
+    if v = x then {eExp = ELet(v, e1'', e2'); espan = e2.espan}
+    else {eExp = ELet(v, e1'', eSubst x e1 e2'); espan = e2.espan}
+  | EFor (v, e1', e2') ->
+    let e1'' = eSubst x e1 e1' in
+    if v = x then {eExp = EFor(v, e1'', e2'); espan = e2.espan}
+    else {eExp = EFor(v, e1'', eSubst x e1 e2'); espan = e2.espan}
+  | EArr _ -> e2 (* don't substitute inside arrays since we only have evaluated expressions in arrays *)
+  | EIntTypeExpr -> e2
+  | EFunTypeExpr (e1', e2') ->
+    let e1'' = eSubst x e1 e1' in
+    let e2'' = eSubst x e1 e2' in
+    {eExp = EFunTypeExpr (e1'', e2''); espan = e2.espan}
+  | EFinTypeExpr _ -> e2 (* Fin types can only contain integer literals (no variables) so don't substitute *)
+  | EArrTypeExpr (e1', e2') ->
+    let e1'' = eSubst x e1 e1' in
+    let e2'' = eSubst x e1 e2' in
+    {eExp = EArrTypeExpr (e1'', e2''); espan = e2.espan}
 
 let rec eInterp (e: exp) =
   match e.eExp with
@@ -38,6 +57,15 @@ let rec eInterp (e: exp) =
     | _ -> raise (Fail
       ("subtraction of non-integer type at " ^ (Span.show_span e.espan)))
   end
+  | ETFun _ -> e
+  | EApp (e1, e2) -> begin
+    let v2 = eInterp e2 in
+    match (eInterp e1).eExp with
+    | ETFun (v, _, body) ->
+      eInterp (eSubst v v2 body)
+    | _ -> raise (Fail
+      ("application of non-function type at" ^ Span.show_span e.espan))
+  end
   | EIf (e1, e2, e3) -> begin
     match (eInterp e1).eExp with
     | EInt 0 -> eInterp e2
@@ -45,14 +73,20 @@ let rec eInterp (e: exp) =
     | _ -> raise (Fail 
       ("condition of if at " ^ (Span.show_span e.espan) ^ "is not an int"))
   end
-  | EApp (e1, e2) -> begin
-    let v2 = eInterp e2 in
-    match (eInterp e1).eExp with
-    | ETFun (v, _, body) ->
-      eInterp (eSubst v v2 body)
-    | _ -> raise (Fail
-    ("application of non-function type at" ^ Span.show_span e.espan))
-    end
-  | ETFun _ -> e
   | ELet (v, e1, e2) -> eInterp (eSubst v (eInterp e1) e2)
-  | EFin _ -> e
+  | EFor (v, e1, e2) -> begin
+    match (eInterp e1).eExp with
+    | EFinTypeExpr inner -> begin
+      match inner.eExp with
+      | EInt n ->
+        let elements = List.init n (fun i ->
+          let index = aexp (EInt i) e.espan in
+          eInterp (eSubst v index e2)
+        ) in
+        aexp (EArr elements) e.espan
+      | _ -> raise Impossible
+    end
+    | _ -> raise Impossible
+  end
+  | EArr _ -> e
+  | EIntTypeExpr | EFunTypeExpr _  | EFinTypeExpr _ | EArrTypeExpr _ -> e

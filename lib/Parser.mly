@@ -14,10 +14,13 @@
 %token <Span.t> ELSE
 %token <Span.t> INT
 %token <Span.t> FIN
+%token <Span.t> FOR
+%token <Span.t> DOT
 %token <Span.t> LPAREN
 %token <Span.t> RPAREN
 %token <Span.t> COL
 %token <Span.t> ARROW
+%token <Span.t> ARR_ARROW
 %token <Span.t> PLUS
 %token <Span.t> MINUS
 %token EOF
@@ -35,6 +38,8 @@ expr:
             { aexp (EIf ($2, $4, $6)) (Span.extend $1 $6.espan)}
     | LET ID EQUAL expr IN expr
             { aexp (ELet (snd $2, $4, $6)) (Span.extend $1 $6.espan) }
+    | FOR ID COL ty DOT expr
+            { aexp (EFor (snd $2, $4, $6)) (Span.extend $1 $6.espan) }
 
 
 addExpr:
@@ -53,17 +58,19 @@ appExpr:
 atomExpr:
     | ID                 { aexp (EVar (snd $1)) (fst $1) }
     | NUM                { aexp (EInt (snd $1)) (fst $1) }
-    | FIN atomExpr       { aexp (EFin $2) (Span.extend $1 $2.espan) }
+    | FIN NUM            { aexp (EFinTypeExpr (aexp (EInt (snd $2)) (fst $2))) (Span.extend $1 (fst $2)) }
     | LPAREN expr RPAREN { $2 }
 
 ty:
-    | aty            { $1 }
-    | aty ARROW ty   {EFunType ($1, $3)}
-    
+    | aty                { $1 }
+    | aty ARROW ty       { aexp (EFunTypeExpr ($1, $3)) (Span.extend $1.espan $3.espan) }
+    | aty ARR_ARROW ty   { aexp (EArrTypeExpr ($1, $3)) (Span.extend $1.espan $3.espan) }
 
 aty:
-    | INT           {EIntType}
-    | LPAREN ty RPAREN { $2 }
+    | INT                { aexp EIntTypeExpr $1 }
+    | ID                 { aexp (EVar (snd $1)) (fst $1) }
+    | FIN NUM            { aexp (EFinTypeExpr (aexp (EInt (snd $2)) (fst $2))) (Span.extend $1 (fst $2)) }
+    | LPAREN ty RPAREN   { $2 }
 
 prog:
     | expr EOF           { $1 }

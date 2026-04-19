@@ -1,0 +1,2 @@
+let length = Fin 5 in
+for x:length. for y:length. 1

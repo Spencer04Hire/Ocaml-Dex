@@ -44,6 +44,10 @@ let run_test file result =
   let _ = typeOf Context.empty e in
   assert_bool "not equal" (equal (eInterp e) exp_result)
 
+let five_ones = EArr [expOf (EInt 1); expOf (EInt 1); expOf (EInt 1); expOf (EInt 1); expOf (EInt 1)]
+
+let nested_five_ones = EArr [expOf five_ones; expOf five_ones; expOf five_ones; expOf five_ones; expOf five_ones]
+
 let tests =
   "test suite" >::: [
     "let_simple" >:: (fun _ ->
@@ -65,11 +69,17 @@ let tests =
     "if_branch_type_fail" >:: (fun _ ->
         type_check_fail "test/if_branch_type_fail.odx");
     "let_fin" >:: (fun _ ->
-        run_test "test/let_fin.odx" (EFin (expOf (EInt 5))));
-    "fin_type_fail" >:: (fun _ ->
-        type_check_fail "test/fin_type_fail.odx");
-    "fin_neg_fail" >:: (fun _ ->
-        type_check_fail "test/fin_neg_fail.odx");
+        run_test "test/let_fin.odx" (EFinTypeExpr (expOf (EInt 5))));
+    "fin_zero_fail" >:: (fun _ ->
+        type_check_fail "test/fin_zero_fail.odx");
+    "for_simple" >:: (fun _ ->
+        run_test "test/for_simple.odx" five_ones);
+    "for_type_let" >:: (fun _ ->
+        run_test "test/for_type_let.odx" five_ones);
+    "for_nested" >:: (fun _ ->
+        run_test "test/for_nested.odx" nested_five_ones);
+    "for_type_fail" >:: (fun _ ->
+        type_check_fail "test/for_type_fail.odx");
   ] 
 
 let _ = print_endline "running tests"
