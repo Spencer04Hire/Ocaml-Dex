@@ -9,7 +9,7 @@ let read lexbuf =
     (tok, line, cnum)
   in
   try Parser.prog Lexer.token lexbuf with
-  | Parsing.Parse_error ->
+  | Parser.Error ->
       let tok, line, cnum = get_info () in
       Printf.printf "[Parse Error] token: %s, line: %s, char: %s\n" tok
         (string_of_int line) (string_of_int cnum) ;

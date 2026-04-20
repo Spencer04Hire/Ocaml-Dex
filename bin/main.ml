@@ -21,3 +21,5 @@ let () =
   | TypeCheck.Impossible -> Printf.printf "[Type Error] Impossible state reached\n"
   | Interp.RuntimeError msg -> Printf.printf "[Runtime Error] %s\n" msg
   | Interp.Impossible -> Printf.printf "[Runtime Error] Impossible state reached\n"
+  | Sys_error msg -> Printf.printf "[Error] %s\n" msg
+  | Lexer.Eof -> Printf.printf "[Parse Error] Unexpected end of file\n"
