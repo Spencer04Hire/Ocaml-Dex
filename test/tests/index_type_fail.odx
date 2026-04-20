@@ -1,0 +1,3 @@
+let n = fun i:int = i in
+let arr = for i:Fin 5. 1 in
+for i:Fin 5. arr[n]

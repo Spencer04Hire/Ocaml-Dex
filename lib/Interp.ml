@@ -1,7 +1,6 @@
 open Ast
-exception UnboundVariable of string
-exception Fail of string
 exception Impossible
+exception RuntimeError of string
 
 (* substitutes x with e1 in e2 *)
 let rec eSubst (x: var) (e1: exp) (e2: exp) =
@@ -12,6 +11,10 @@ let rec eSubst (x: var) (e1: exp) (e2: exp) =
     {eExp = EPlus(eSubst x e1 e21, eSubst x e1 e22); espan = e2.espan}
   | EMinus (e21, e22) ->
     {eExp = EMinus(eSubst x e1 e21, eSubst x e1 e22); espan = e2.espan}
+  | ETimes (e21, e22) ->
+    {eExp = ETimes(eSubst x e1 e21, eSubst x e1 e22); espan = e2.espan}
+  | EDiv (e21, e22) ->
+    {eExp = EDiv(eSubst x e1 e21, eSubst x e1 e22); espan = e2.espan}
   | ETFun (v, t, body) ->
     let t' = eSubst x e1 t in
     if v = x then {eExp = ETFun(v, t', body); espan = e2.espan}
@@ -30,6 +33,10 @@ let rec eSubst (x: var) (e1: exp) (e2: exp) =
     if v = x then {eExp = EFor(v, e1'', e2'); espan = e2.espan}
     else {eExp = EFor(v, e1'', eSubst x e1 e2'); espan = e2.espan}
   | EArr _ -> e2 (* don't substitute inside arrays since we only have evaluated expressions in arrays *)
+  | EArrIndex (e1', e2') ->
+    let e1'' = eSubst x e1 e1' in
+    let e2'' = eSubst x e1 e2' in
+    {eExp = EArrIndex (e1'', e2''); espan = e2.espan}
   | EIntTypeExpr -> e2
   | EFunTypeExpr (e1', e2') ->
     let e1'' = eSubst x e1 e1' in
@@ -41,21 +48,31 @@ let rec eSubst (x: var) (e1: exp) (e2: exp) =
     let e2'' = eSubst x e1 e2' in
     {eExp = EArrTypeExpr (e1'', e2''); espan = e2.espan}
 
+(* Impossible indicates that with type checking, we should never reach this case *)
 let rec eInterp (e: exp) =
   match e.eExp with
-  | EVar v -> raise (UnboundVariable (Var.to_string v))
+  | EVar _ -> raise Impossible
   | EInt _ -> e
   | EPlus (e1, e2) -> begin
     match (eInterp e1).eExp, (eInterp e2).eExp with
     | EInt i1, EInt i2 -> aexp (EInt (i1 + i2)) e.espan
-    | _ -> raise (Fail
-      ("addition of non-integer type at " ^ (Span.show_span e.espan)))
+    | _ -> raise Impossible
   end
   | EMinus (e1, e2) -> begin
     match (eInterp e1).eExp, (eInterp e2).eExp with
     | EInt i1, EInt i2 -> aexp (EInt (i1 - i2)) e.espan
-    | _ -> raise (Fail
-      ("subtraction of non-integer type at " ^ (Span.show_span e.espan)))
+    | _ -> raise Impossible
+  end
+  | ETimes (e1, e2) -> begin
+    match (eInterp e1).eExp, (eInterp e2).eExp with
+    | EInt i1, EInt i2 -> aexp (EInt (i1 * i2)) e.espan
+    | _ -> raise Impossible
+  end
+  | EDiv (e1, e2) -> begin
+    match (eInterp e1).eExp, (eInterp e2).eExp with
+    | EInt i1, EInt i2 -> if i2 = 0 then raise (RuntimeError ("Division by zero at " ^ (Span.show_span e.espan)))
+    else aexp (EInt (i1 / i2)) e.espan
+    | _ -> raise Impossible
   end
   | ETFun _ -> e
   | EApp (e1, e2) -> begin
@@ -63,15 +80,13 @@ let rec eInterp (e: exp) =
     match (eInterp e1).eExp with
     | ETFun (v, _, body) ->
       eInterp (eSubst v v2 body)
-    | _ -> raise (Fail
-      ("application of non-function type at" ^ Span.show_span e.espan))
+    | _ -> raise Impossible
   end
   | EIf (e1, e2, e3) -> begin
     match (eInterp e1).eExp with
     | EInt 0 -> eInterp e2
     | EInt _ -> eInterp e3
-    | _ -> raise (Fail 
-      ("condition of if at " ^ (Span.show_span e.espan) ^ "is not an int"))
+    | _ -> raise Impossible
   end
   | ELet (v, e1, e2) -> eInterp (eSubst v (eInterp e1) e2)
   | EFor (v, e1, e2) -> begin
@@ -89,4 +104,11 @@ let rec eInterp (e: exp) =
     | _ -> raise Impossible
   end
   | EArr _ -> e
+  | EArrIndex (e1, e2) -> begin
+    let arr = eInterp e1 in
+    let index = eInterp e2 in
+    match arr.eExp, index.eExp with
+    | EArr elements, EInt i -> List.nth elements i
+    | _ -> raise Impossible
+  end
   | EIntTypeExpr | EFunTypeExpr _  | EFinTypeExpr _ | EArrTypeExpr _ -> e

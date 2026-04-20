@@ -34,12 +34,16 @@ rule token = parse
   | "."               { DOT (position lexbuf)}
   | "("               { LPAREN (position lexbuf) } 
   | ")"               { RPAREN (position lexbuf) }
+  | "["               { LBRACK (position lexbuf) }
+  | "]"               { RBRACK (position lexbuf) }
   | ":"               { COL (position lexbuf)}
   | "->"              { ARROW (position lexbuf)}
   | "=>"              { ARR_ARROW (position lexbuf)}
   | "="               { EQUAL (position lexbuf) }
   | "+"               { PLUS (position lexbuf)}
   | "-"               { MINUS (position lexbuf)}
+  | "*"               { TIMES (position lexbuf) }
+  | "/"               { DIV (position lexbuf) }
   | wspace            { token lexbuf }
   | id as s           { ID (position lexbuf, Var.create s) }
   | num as n          { NUM (position lexbuf, int_of_string n) }

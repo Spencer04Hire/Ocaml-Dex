@@ -1,0 +1,2 @@
+let n = fun i:int = i in
+for i:Fin 5. n[i]

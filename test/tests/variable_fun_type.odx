@@ -1,0 +1,3 @@
+let t = int -> int in
+let f = fun i:t = i 1 in
+f (fun i:int = i + 1)

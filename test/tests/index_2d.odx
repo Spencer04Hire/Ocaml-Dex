@@ -1,0 +1,2 @@
+let arr2d = for i:Fin 5. for j:Fin 5. 0 in
+for i:Fin 5. for j:Fin 5. arr2d[i][j] + 1

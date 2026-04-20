@@ -39,7 +39,7 @@ let rec typeOf (env: eEnv) (e: exp) : eType =
     | None -> raise (UnboundVariable (Var.to_string v))
   end
   | EInt _ -> EIntType
-  | EPlus (e1, e2) | EMinus (e1, e2) -> begin
+  | EPlus (e1, e2) | EMinus (e1, e2) | ETimes (e1, e2) | EDiv (e1, e2) -> begin
     let t1 = typeOf env e1 in
     let t2 = typeOf env e2 in
     match t1, t2 with
@@ -91,5 +91,15 @@ let rec typeOf (env: eEnv) (e: exp) : eType =
       ("type error in for loop: expected a Fin or Var of Fin type  " ^ (Span.show_span e.espan)))
   end
   | EArr _ -> raise Impossible (* not used by the programmer, only for internal representation of arrays *)
-
+  | EArrIndex (e1, e2) -> begin
+    let t1 = typeOf env e1 in
+    let t2 = typeOf env e2 in
+    match t1 with
+    | EArrType (tIn, tOut) ->
+      if tIn = t2 then tOut
+      else raise (TypeError
+        ("type error in array indexing: expected index of type " ^ (Ast.typeString tIn) ^ " but got " ^ (Ast.typeString t2) ^ " at " ^ (Span.show_span e.espan)))
+    | _ -> raise (TypeError
+      ("type error in array indexing: expected an array type at " ^ (Span.show_span e.espan)))
+  end
   | EIntTypeExpr | EFunTypeExpr _  | EFinTypeExpr _ | EArrTypeExpr _ -> ETypeType (expToType env e)
