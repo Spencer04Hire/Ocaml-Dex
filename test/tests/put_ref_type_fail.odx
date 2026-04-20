@@ -1,0 +1,4 @@
+let arr = for i:Fin 5. ord i in
+runState ref := 0.
+    for i:Fin 5.
+        arr := (get ref) + arr[i]

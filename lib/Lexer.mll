@@ -32,12 +32,15 @@ rule token = parse
   | "Fin"             { FIN (position lexbuf)}
   | "for"             { FOR (position lexbuf)}
   | "ord"             { ORD (position lexbuf)}
+  | "get"             { GET (position lexbuf)}
+  | "runState"        { RUNSTATE (position lexbuf)}
   | "."               { DOT (position lexbuf)}
   | "@"               { AT (position lexbuf)}
   | "("               { LPAREN (position lexbuf) } 
   | ")"               { RPAREN (position lexbuf) }
   | "["               { LBRACK (position lexbuf) }
   | "]"               { RBRACK (position lexbuf) }
+  | ":="              { ASSIGN (position lexbuf) }
   | ":"               { COL (position lexbuf)}
   | "->"              { ARROW (position lexbuf)}
   | "=>"              { ARR_ARROW (position lexbuf)}

@@ -1,12 +1,17 @@
 type var = Var.t
 
+type effect =
+  | Pure
+  | StateEffect of int
+
 type eType =
   | EIntType
   | EFunType of eType * eType
   | EFinType of int
-  | ETypeType of eType (* for variables that are a type *)
+  | ETypeType of eType        (* for variables that are a type *)
   | EArrType of eType * eType (* Fin n => Type *)
-
+  | ERefType of int * eType
+  | EUnitType
 
 type eExp = (* use span to parse *)
   | EVar of var
@@ -25,11 +30,17 @@ type eExp = (* use span to parse *)
   | EArrIndex of exp * exp    (* e1[e2] *)
   | EOrd of exp               (* ord e *)
   | EFromOrd of exp * exp     (* e1 @ e2 *)
+  (* ref expressions *)
+  | ERunState of exp * var * exp
+  | EGet of exp
+  | EPut of exp * exp
+  | ERef of int               (* only used for internal representation *)
   (* type constructors *)
   | EIntTypeExpr
   | EFunTypeExpr of exp * exp
   | EFinTypeExpr of exp           (* Fin 5 *)
   | EArrTypeExpr of exp * exp
+  | EUnit
 and exp =
   { eExp : eExp
   ; espan : Span.t
@@ -48,6 +59,8 @@ let rec typeString (t: eType) =
   | EFunType (e1, e2) -> "(" ^ typeString e1 ^ ") -> (" ^ typeString e2 ^ ")"
   | ETypeType t -> "Type(" ^ typeString t ^ ")"
   | EArrType (e1, e2) -> "[" ^ typeString e1 ^ "] => " ^ typeString e2
+  | ERefType (n, t) -> "Ref(" ^ Int.to_string n ^ ", " ^ typeString t ^ ")"
+  | EUnitType -> "Unit"
 
 let rec eToString (e: exp) =
   match e.eExp with
@@ -71,8 +84,14 @@ let rec eToString (e: exp) =
   | EArrIndex (e1, e2) -> eToString e1 ^ "[" ^ eToString e2 ^ "]"
   | EOrd e -> "ord(" ^ eToString e ^ ")"
   | EFromOrd (e1, e2) -> eToString e1 ^ " @ " ^ eToString e2
+  (* ref expressions *)
+  | ERunState (e, v, body) -> "runState(" ^ eToString e ^ ", " ^ Var.to_string v ^ ". " ^ eToString body ^ ")"
+  | EGet e1 -> "get(" ^ eToString e1 ^ ")"
+  | EPut (e1, e2) -> "put(" ^ eToString e1 ^ ", " ^ eToString e2 ^ ")"
+  | ERef n -> "ref(" ^ Int.to_string n ^ ")"
   (* type expressions *)
   | EIntTypeExpr -> "int"
   | EFinTypeExpr e -> "Fin(" ^ eToString e ^ ")"
   | EFunTypeExpr (e1, e2) -> "(" ^ eToString e1 ^ ") -> (" ^ eToString e2 ^ ")"
   | EArrTypeExpr (e1, e2) -> "[" ^ eToString e1 ^ "] => " ^ eToString e2
+  | EUnit -> "Unit"

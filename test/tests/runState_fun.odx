@@ -1,0 +1,7 @@
+let arr = for i:Fin 5. ord i in
+let sum = fun arr:Fin 5 => int =
+	runState ref := 0.
+	for i:Fin 5.
+		ref := (get ref) + arr[i]
+in
+sum arr

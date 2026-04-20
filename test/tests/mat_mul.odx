@@ -1,0 +1,14 @@
+let arr1 = for i:Fin 3. for j: Fin 5. ord i + ord j in
+let arr2 = for i:Fin 5. for j: Fin 2. (ord i + 1) * 2 in
+let sum = fun arr:Fin 5 => int =
+	runState ref := 0.
+	for i:Fin 5.
+		ref := (get ref) + arr[i]
+in
+let mat_mul =
+	fun arr1:Fin 3 => Fin 5 => int =
+	fun arr2:Fin 5 => Fin 2 => int =
+		for i:Fin 3. for j:Fin 2.
+			sum (for k:Fin 5. arr1[i][k] * arr2[k][j])
+in
+mat_mul arr1 arr2

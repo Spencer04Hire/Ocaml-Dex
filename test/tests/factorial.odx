@@ -1,0 +1,3 @@
+runState res := 1.
+    for i:Fin 6.
+        res := get res * (ord i + 1)

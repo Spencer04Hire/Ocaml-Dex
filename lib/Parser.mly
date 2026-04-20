@@ -15,12 +15,15 @@
 %token <Span.t> FIN
 %token <Span.t> FOR
 %token <Span.t> ORD
+%token <Span.t> GET
+%token <Span.t> RUNSTATE
 %token <Span.t> DOT
 %token <Span.t> AT
 %token <Span.t> LPAREN
 %token <Span.t> RPAREN
 %token <Span.t> LBRACK
 %token <Span.t> RBRACK
+%token <Span.t> ASSIGN
 %token <Span.t> COL
 %token <Span.t> ARROW
 %token <Span.t> ARR_ARROW
@@ -47,6 +50,10 @@ expr:
             { aexp (ELet (snd $2, $4, $6)) (Span.extend $1 $6.espan) }
     | FOR ID COL expr DOT expr
             { aexp (EFor (snd $2, $4, $6)) (Span.extend $1 $6.espan) }
+    | RUNSTATE ID ASSIGN expr DOT expr
+            { aexp (ERunState ($4, snd $2, $6)) (Span.extend $1 $6.espan) }
+    | atomExpr ASSIGN expr
+            { aexp (EPut ($1, $3)) (Span.extend $1.espan $3.espan) }
 
 addExpr:
     | mulExpr               { $1 }
@@ -74,6 +81,7 @@ atomExpr:
     | FIN NUM            { aexp (EFinTypeExpr (aexp (EInt (snd $2)) (fst $2))) (Span.extend $1 (fst $2)) }
     | ORD atomExpr       { aexp (EOrd $2) (Span.extend $1 $2.espan) }
     | NUM AT atomExpr    { aexp (EFromOrd (aexp (EInt (snd $1)) (fst $1), $3)) (Span.extend (fst $1) $3.espan) }
+    | GET atomExpr       { aexp (EGet $2) (Span.extend $1 $2.espan) }
     | LPAREN expr RPAREN { $2 }
 
 prog:

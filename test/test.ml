@@ -19,7 +19,7 @@ let check_var_fail file =
   let path = "test/tests/" ^ file in
   let e = parsefile path in
   try
-    let _ = typeOf Context.empty e in
+    let _ = typeCheck e in
     assert_failure ("expected unbound variable error in " ^ file)
   with UnboundVariable _ -> ()
 
@@ -27,7 +27,7 @@ let type_check_fail file =
   let path = "test/tests/" ^ file in
   let e = parsefile path in
   try
-    let _ = typeOf Context.empty e in
+    let _ = typeCheck e in
     assert_failure ("expected type error in " ^ file)
   with TypeError _ -> ()
 
@@ -35,8 +35,8 @@ let runtime_check_fail file =
   let path = "test/tests/" ^ file in
   let e = parsefile path in
   try
-    let _ = typeOf Context.empty e in
-    let _ = eInterp e in
+    let _ = typeCheck e in
+    let _ = interp e in
     assert_failure ("expected runtime error in " ^ file)
   with RuntimeError _ -> ()
 
@@ -49,12 +49,12 @@ let run_test file result =
   (* let _ = print_endline ("running test on " ^ file) in
   let _ = print_endline ("program: " ^ eToString (parsefile file)) in
   let _ = print_endline ("expected result: " ^ eToString result) in
-  let _ = print_endline ("actual result: " ^ eToString (eInterp (parsefile file))) in *)
+  let _ = print_endline ("actual result: " ^ eToString (interp (parsefile file))) in *)
   let path = "test/tests/" ^ file in
   let exp_result = expOf result in
   let e = parsefile path in
-  let _ = typeOf Context.empty e in
-  assert_bool "not equal" (equal (eInterp e) exp_result)
+  let _ = typeCheck e in
+  assert_bool "not equal" (equal (interp e) exp_result)
 
 let five_ones = EArr [expOf (EInt 1); expOf (EInt 1); expOf (EInt 1); expOf (EInt 1); expOf (EInt 1)]
 
@@ -65,6 +65,8 @@ let one_to_five = EArr [expOf (EInt 1); expOf (EInt 2); expOf (EInt 3); expOf (E
 let squares = EArr [expOf (EInt 0); expOf (EInt 1); expOf (EInt 4); expOf (EInt 9); expOf (EInt 16)]
 
 let squares_nested = EArr [expOf squares; expOf squares; expOf squares]
+
+let mat_mul_ans = EArr [expOf (EArr [expOf (EInt 80); expOf (EInt 80)]); expOf (EArr [expOf (EInt 110); expOf (EInt 110)]); expOf (EArr [expOf (EInt 140); expOf (EInt 140)])]
 
 let tests =
   "test suite" >::: [
@@ -130,6 +132,28 @@ let tests =
         type_check_fail "fromOrd_bounds_fail.odx");
     "fromOrd_type_fail" >:: (fun _ ->
         type_check_fail "fromOrd_type_fail.odx");
+    "runState_sum" >:: (fun _ ->
+        run_test "runState_sum.odx" (EInt 10));
+    "runState_let" >:: (fun _ ->
+        run_test "runState_let.odx" (EInt 10));
+    "runState_fun" >:: (fun _ ->
+        run_test "runState_fun.odx" (EInt 10));
+    "runState_nested" >:: (fun _ ->
+        run_test "runState_nested.odx" (EInt 500));
+    "mat_mul" >:: (fun _ ->
+        run_test "mat_mul.odx" mat_mul_ans);
+    "runState_init_fail" >:: (fun _ ->
+        type_check_fail "runState_init_fail.odx");
+    "get_type_fail" >:: (fun _ ->
+        type_check_fail "get_type_fail.odx");
+    "put_ref_type_fail" >:: (fun _ ->
+        type_check_fail "put_ref_type_fail.odx");
+    "put_val_type_fail" >:: (fun _ ->
+        type_check_fail "put_val_type_fail.odx");
+    "matrix_trace" >:: (fun _ ->
+        run_test "matrix_trace.odx" (EInt 120));
+    "factorial" >:: (fun _ ->
+        run_test "factorial.odx" (EInt 720));
   ] 
 
 let _ = print_endline "running tests"

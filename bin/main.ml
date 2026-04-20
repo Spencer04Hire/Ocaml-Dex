@@ -11,9 +11,9 @@ let () =
   let fname = Sys.argv.(1) in
   try
     let e = fst (parse fname) in
-    let t = typeOf Context.empty e in
+    let t = typeCheck e in
     Printf.printf "Type: %s\n" (typeString t);
-    let result = eInterp e in
+    let result = interp e in
     Printf.printf "Result: %s\n" (eToString result)
   with
   | TypeCheck.TypeError msg -> Printf.printf "[Type Error] %s\n" msg

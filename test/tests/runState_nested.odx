@@ -1,0 +1,7 @@
+let arr = for i:Fin 5. for j:Fin 5. (ord i + ord j) * (ord i + ord j) in
+runState sum := 0.
+    for i:Fin 5.
+        sum := get sum +
+            (runState rowSum := 0.
+                for j:Fin 5.
+                    rowSum := get rowSum + arr[i][j])
