@@ -60,6 +60,12 @@ let five_ones = EArr [expOf (EInt 1); expOf (EInt 1); expOf (EInt 1); expOf (EIn
 
 let nested_five_ones = EArr [expOf five_ones; expOf five_ones; expOf five_ones; expOf five_ones; expOf five_ones]
 
+let one_to_five = EArr [expOf (EInt 1); expOf (EInt 2); expOf (EInt 3); expOf (EInt 4); expOf (EInt 5)]
+
+let squares = EArr [expOf (EInt 0); expOf (EInt 1); expOf (EInt 4); expOf (EInt 9); expOf (EInt 16)]
+
+let squares_nested = EArr [expOf squares; expOf squares; expOf squares]
+
 let tests =
   "test suite" >::: [
     "let_simple" >:: (fun _ ->
@@ -110,6 +116,14 @@ let tests =
         runtime_check_fail "div_zero_fail.odx");
     "variable_fun_type" >:: (fun _ ->
         run_test "variable_fun_type.odx" (EInt 2));
+    "ord_simple" >:: (fun _ ->
+        run_test "ord_simple.odx" one_to_five);
+    "ord square" >:: (fun _ ->
+        run_test "ord_square.odx" squares);
+    "transpose" >:: (fun _ ->
+        run_test "transpose.odx" squares_nested);
+    "ord_type_fail" >:: (fun _ ->
+        type_check_fail "ord_type_fail.odx");
   ] 
 
 let _ = print_endline "running tests"

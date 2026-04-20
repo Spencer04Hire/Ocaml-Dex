@@ -1,6 +1,5 @@
 %{
   open Ast
-  
 %}
 
 %token <Span.t * Var.t> ID
@@ -15,6 +14,7 @@
 %token <Span.t> INT
 %token <Span.t> FIN
 %token <Span.t> FOR
+%token <Span.t> ORD
 %token <Span.t> DOT
 %token <Span.t> LPAREN
 %token <Span.t> RPAREN
@@ -71,6 +71,7 @@ atomExpr:
     | NUM                { aexp (EInt (snd $1)) (fst $1) }
     | INT                { aexp EIntTypeExpr $1 }
     | FIN NUM            { aexp (EFinTypeExpr (aexp (EInt (snd $2)) (fst $2))) (Span.extend $1 (fst $2)) }
+    | ORD atomExpr       { aexp (EOrd $2) (Span.extend $1 $2.espan) }
     | LPAREN expr RPAREN { $2 }
 
 prog:

@@ -102,4 +102,11 @@ let rec typeOf (env: eEnv) (e: exp) : eType =
     | _ -> raise (TypeError
       ("type error in array indexing: expected an array type at " ^ (Span.show_span e.espan)))
   end
+  | EOrd e1 -> begin
+    let t = typeOf env e1 in
+    match t with
+    | EFinType _ -> EIntType
+    | _ -> raise (TypeError
+      ("type error in ord: expected a Fin type but got " ^ (Ast.typeString t) ^ " at " ^ (Span.show_span e.espan)))
+  end
   | EIntTypeExpr | EFunTypeExpr _  | EFinTypeExpr _ | EArrTypeExpr _ -> ETypeType (expToType env e)

@@ -23,6 +23,7 @@ type eExp = (* use span to parse *)
   | EFor of var * exp * exp   (* for x:Fin n. e *)
   | EArr of exp list          (* [e1; e2; e3], not used by the programmer *)
   | EArrIndex of exp * exp    (* e1[e2] *)
+  | EOrd of exp               (* ord e *)
   (* type constructors *)
   | EIntTypeExpr
   | EFunTypeExpr of exp * exp
@@ -67,6 +68,7 @@ let rec eToString (e: exp) =
   | EFor (x, e1, e2) -> "for " ^ Var.to_string x ^ ": " ^ eToString e1 ^ ". " ^ eToString e2
   | EArr es -> "[ " ^ String.concat "; " (List.map eToString es) ^ " ]"
   | EArrIndex (e1, e2) -> eToString e1 ^ "[" ^ eToString e2 ^ "]"
+  | EOrd e -> "ord(" ^ eToString e ^ ")"
   (* type expressions *)
   | EIntTypeExpr -> "int"
   | EFinTypeExpr e -> "Fin(" ^ eToString e ^ ")"

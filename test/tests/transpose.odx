@@ -1,0 +1,4 @@
+let width = Fin 3 in
+let height = Fin 5 in
+let arr = for i:height. for j:width. ord i * ord i in
+for i:width. for j:height. arr[j][i]

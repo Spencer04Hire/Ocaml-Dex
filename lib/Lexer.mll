@@ -31,6 +31,7 @@ rule token = parse
   | "int"             { INT (position lexbuf)}
   | "Fin"             { FIN (position lexbuf)}
   | "for"             { FOR (position lexbuf)}
+  | "ord"             { ORD (position lexbuf)}
   | "."               { DOT (position lexbuf)}
   | "("               { LPAREN (position lexbuf) } 
   | ")"               { RPAREN (position lexbuf) }

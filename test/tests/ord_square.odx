@@ -1,0 +1,2 @@
+let len = Fin 5 in
+for i:len. ord i * ord i
