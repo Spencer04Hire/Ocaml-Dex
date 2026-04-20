@@ -109,4 +109,16 @@ let rec typeOf (env: eEnv) (e: exp) : eType =
     | _ -> raise (TypeError
       ("type error in ord: expected a Fin type but got " ^ (Ast.typeString t) ^ " at " ^ (Span.show_span e.espan)))
   end
+  | EFromOrd (e1, e2) -> begin
+    match e1.eExp with
+    | EInt n -> begin (* only allow integer literals *)
+      let t2 = typeOf env e2 in
+      match t2 with
+      | EFinType m | ETypeType (EFinType m) -> if n < m && n >= 0 then EFinType m
+      else raise (TypeError ("type error in fromOrd: integer literal " ^ string_of_int n ^ " is out of bounds for the Fin type " ^ (Ast.typeString t2) ^ " at " ^ (Span.show_span e1.espan)))
+      | _ -> raise (TypeError ("type error in fromOrd: expected a Fin type for the second argument but got " ^ (Ast.typeString t2) ^ " at " ^ (Span.show_span e2.espan)))
+    end
+    | _ -> raise (TypeError
+      ("type error in fromOrd: expected an int literal for the first argument but got " ^ (eToString e1) ^ " at " ^ (Span.show_span e.espan)))
+  end
   | EIntTypeExpr | EFunTypeExpr _  | EFinTypeExpr _ | EArrTypeExpr _ -> ETypeType (expToType env e)

@@ -38,6 +38,9 @@ let rec eSubst (x: var) (e1: exp) (e2: exp) =
     let e2'' = eSubst x e1 e2' in
     {eExp = EArrIndex (e1'', e2''); espan = e2.espan}
   | EOrd e -> {eExp = EOrd (eSubst x e1 e); espan = e2.espan}
+  | EFromOrd (e1', e2') ->
+    let e2'' = eSubst x e1 e2' in
+    {eExp = EFromOrd (e1', e2''); espan = e2.espan} (* fromOrd can only be applied on integer literals so don't substitute *)
   | EIntTypeExpr -> e2
   | EFunTypeExpr (e1', e2') ->
     let e1'' = eSubst x e1 e1' in
@@ -114,6 +117,11 @@ let rec eInterp (e: exp) =
   end
   | EOrd e1 -> begin
     match (eInterp e1).eExp with
+    | EInt n -> aexp (EInt n) e.espan
+    | _ -> raise Impossible
+  end
+  | EFromOrd (e1, _) -> begin
+    match e1.eExp with
     | EInt n -> aexp (EInt n) e.espan
     | _ -> raise Impossible
   end

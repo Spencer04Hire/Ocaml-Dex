@@ -16,6 +16,7 @@
 %token <Span.t> FOR
 %token <Span.t> ORD
 %token <Span.t> DOT
+%token <Span.t> AT
 %token <Span.t> LPAREN
 %token <Span.t> RPAREN
 %token <Span.t> LBRACK
@@ -72,6 +73,7 @@ atomExpr:
     | INT                { aexp EIntTypeExpr $1 }
     | FIN NUM            { aexp (EFinTypeExpr (aexp (EInt (snd $2)) (fst $2))) (Span.extend $1 (fst $2)) }
     | ORD atomExpr       { aexp (EOrd $2) (Span.extend $1 $2.espan) }
+    | NUM AT atomExpr    { aexp (EFromOrd (aexp (EInt (snd $1)) (fst $1), $3)) (Span.extend (fst $1) $3.espan) }
     | LPAREN expr RPAREN { $2 }
 
 prog:

@@ -33,6 +33,7 @@ rule token = parse
   | "for"             { FOR (position lexbuf)}
   | "ord"             { ORD (position lexbuf)}
   | "."               { DOT (position lexbuf)}
+  | "@"               { AT (position lexbuf)}
   | "("               { LPAREN (position lexbuf) } 
   | ")"               { RPAREN (position lexbuf) }
   | "["               { LBRACK (position lexbuf) }

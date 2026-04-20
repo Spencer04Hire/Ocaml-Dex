@@ -1,0 +1,7 @@
+let len = Fin 2 in
+let arr = for i:len. for j:len. (ord i + 1) * (ord j + 1) in
+let det = fun arr:len => len => int =
+	arr[0 @ len][0 @ len] * arr[1 @ len][1 @ len] -
+	arr[1 @ len][0 @ len] * arr[0 @ len][1 @ len]
+in
+det arr

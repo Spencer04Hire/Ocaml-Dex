@@ -124,6 +124,12 @@ let tests =
         run_test "transpose.odx" squares_nested);
     "ord_type_fail" >:: (fun _ ->
         type_check_fail "ord_type_fail.odx");
+    "determinant_2d" >:: (fun _ ->
+        run_test "determinant_2d.odx" (EInt 0));
+    "fromOrd_bounds_fail" >:: (fun _ ->
+        type_check_fail "fromOrd_bounds_fail.odx");
+    "fromOrd_type_fail" >:: (fun _ ->
+        type_check_fail "fromOrd_type_fail.odx");
   ] 
 
 let _ = print_endline "running tests"
